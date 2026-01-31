@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amazon Alexa Reviews - ML Sentiment Analysis Project</title>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #FF9500;
+            --secondary: #232F3E;
+            --accent: #00A8E1;
+            --success: #34C759;
+            --danger: #FF3B30;
+            --bg-light: #F5F5F7;
+            --bg-dark: #1C1C1E;
+            --text-dark: #1D1D1F;
+            --text-light: #86868B;
+            --card-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg-light);
+            color: var(--text-dark);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            z-index: 1000;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1.2rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 1.4rem;
+            color: var(--primary);
+            letter-spacing: -1px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text-dark);
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        /* Hero Section */
+        .hero {
+            margin-top: 80px;
+            padding: 6rem 2rem 4rem;
+            background: linear-gradient(135deg, #FF9500 0%, #FF6B00 100%);
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="1" fill="white" opacity="0.1"/></svg>');
+            background-size: 50px 50px;
+            opacity: 0.3;
+        }
+
+        .hero-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.5rem 1.2rem;
+            border-radius: 50px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .hero h1 {
+            font-family: 'Archivo Black', sans-serif;
+            font-size: clamp(2.5rem, 6vw, 5rem);
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            letter-spacing: -2px;
+            animation: fadeInUp 0.6s ease-out 0.2s both;
+        }
+
+        .hero p {
+            font-size: clamp(1.1rem, 2vw, 1.4rem);
+            max-width: 700px;
+            margin-bottom: 2.5rem;
+            opacity: 0.95;
+            animation: fadeInUp 0.6s ease-out 0.4s both;
+        }
+
+        .hero-stats {
+            display: flex;
+            gap: 3rem;
+            flex-wrap: wrap;
+            animation: fadeInUp 0.6s ease-out 0.6s both;
+        }
+
+        .hero-stat {
+            text-align: left;
+        }
+
+        .hero-stat-number {
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 3rem;
+            line-height: 1;
+            margin-bottom: 0.3rem;
+        }
+
+        .hero-stat-label {
+            font-size: 0.95rem;
+            opacity: 0.9;
+            font-weight: 500;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        /* Section */
+        .section {
+            padding: 5rem 0;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .section-tag {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            color: var(--primary);
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+        }
+
+        .section-title {
+            font-family: 'Archivo Black', sans-serif;
+            font-size: clamp(2rem, 4vw, 3.5rem);
+            margin-bottom: 1rem;
+            letter-spacing: -1px;
+        }
+
+        .section-description {
+            font-size: 1.15rem;
+            color: var(--text-light);
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        /* Features Grid */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .feature-card {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 20px;
+            box-shadow: var(--card-shadow);
+            transition: transform 0.3s, box-shadow 0.3s;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.12);
+        }
+
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary), #FF6B00);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .feature-title {
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 1.4rem;
+            margin-bottom: 1rem;
+            letter-spacing: -0.5px;
+        }
+
+        .feature-description {
+            color: var(--text-light);
+            line-height: 1.7;
+        }
+
+        /* Model Performance */
+        .model-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .model-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: var(--card-shadow);
+            text-align: center;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .model-name {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            color: var(--text-light);
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .model-score {
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 3rem;
+            background: linear-gradient(135deg, var(--primary), #FF6B00);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .model-label {
+            font-size: 0.95rem;
+            color: var(--text-light);
+        }
+
+        /* Tech Stack */
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-top: 3rem;
+        }
+
+        .tech-item {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: var(--card-shadow);
+            transition: transform 0.3s;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .tech-item:hover {
+            transform: scale(1.05);
+        }
+
+        .tech-icon {
+            font-size: 2rem;
+        }
+
+        .tech-name {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        /* Dataset Insights */
+        .insights-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .insight-card {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 20px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .insight-title {
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            letter-spacing: -0.5px;
+        }
+
+        .insight-list {
+            list-style: none;
+        }
+
+        .insight-list li {
+            padding: 1rem 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .insight-list li:last-child {
+            border-bottom: none;
+        }
+
+        .insight-key {
+            color: var(--text-light);
+            font-weight: 500;
+        }
+
+        .insight-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        /* Code Preview */
+        .code-container {
+            background: var(--bg-dark);
+            color: #E8E8E8;
+            padding: 2.5rem;
+            border-radius: 20px;
+            margin-top: 3rem;
+            overflow-x: auto;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .code-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .code-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .code-dot:nth-child(1) { background: #FF5F57; }
+        .code-dot:nth-child(2) { background: #FFBD2E; }
+        .code-dot:nth-child(3) { background: #28CA42; }
+
+        pre {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            line-height: 1.7;
+            margin: 0;
+        }
+
+        .code-comment { color: #6A9955; }
+        .code-keyword { color: #C586C0; }
+        .code-function { color: #DCDCAA; }
+        .code-string { color: #CE9178; }
+        .code-number { color: #B5CEA8; }
+
+        /* CTA Section */
+        .cta-section {
+            background: linear-gradient(135deg, var(--secondary) 0%, #131921 100%);
+            color: white;
+            padding: 5rem 2rem;
+            text-align: center;
+            margin-top: 4rem;
+        }
+
+        .cta-title {
+            font-family: 'Archivo Black', sans-serif;
+            font-size: clamp(2rem, 4vw, 3rem);
+            margin-bottom: 1.5rem;
+            letter-spacing: -1px;
+        }
+
+        .cta-description {
+            font-size: 1.2rem;
+            margin-bottom: 2.5rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 1rem 2.5rem;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            border: 2px solid var(--primary);
+        }
+
+        .btn-primary:hover {
+            background: #FF6B00;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(255, 149, 0, 0.3);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: white;
+            border: 2px solid white;
+        }
+
+        .btn-secondary:hover {
+            background: white;
+            color: var(--secondary);
+        }
+
+        /* Footer */
+        footer {
+            background: var(--bg-dark);
+            color: #E8E8E8;
+            padding: 3rem 2rem;
+            text-align: center;
+        }
+
+        .footer-content {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .footer-text {
+            font-size: 0.95rem;
+            color: #86868B;
+        }
+
+        .footer-text a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-links {
+                gap: 1rem;
+            }
+
+            .hero-stats {
+                gap: 2rem;
+            }
+
+            .insights-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-links {
+                display: none;
+            }
+        }
+
+        /* Scroll Animation */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <div class="logo">ALEXA ML</div>
+            <ul class="nav-links">
+                <li><a href="#overview">Overview</a></li>
+                <li><a href="#features">Features</a></li>
+                <li><a href="#performance">Performance</a></li>
+                <li><a href="#tech">Tech Stack</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <div class="hero-badge">MACHINE LEARNING PROJECT</div>
+            <h1>Amazon Alexa<br>Sentiment Analysis</h1>
+            <p>Advanced Natural Language Processing and Machine Learning to analyze customer sentiment from 3,150+ Amazon Alexa product reviews. Built with Random Forest classifier achieving 94% accuracy.</p>
+            <div class="hero-stats">
+                <div class="hero-stat">
+                    <div class="hero-stat-number">3,150</div>
+                    <div class="hero-stat-label">Reviews Analyzed</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="hero-stat-number">94%</div>
+                    <div class="hero-stat-label">Model Accuracy</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="hero-stat-number">91.8%</div>
+                    <div class="hero-stat-label">Positive Sentiment</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Overview Section -->
+    <section id="overview" class="section">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-tag">Project Overview</div>
+                <h2 class="section-title">End-to-End ML Pipeline</h2>
+                <p class="section-description">From data exploration to deployment, this project demonstrates the complete machine learning workflow for sentiment classification</p>
+            </div>
+
+            <div class="features-grid">
+                <div class="feature-card fade-in">
+                    <div class="feature-icon">📊</div>
+                    <h3 class="feature-title">Data Exploration</h3>
+                    <p class="feature-description">Comprehensive exploratory data analysis of Amazon Alexa reviews including rating distribution, temporal patterns, product variations, and sentiment class balance analysis.</p>
+                </div>
+
+                <div class="feature-card fade-in">
+                    <div class="feature-icon">🧹</div>
+                    <h3 class="feature-title">Text Preprocessing</h3>
+                    <p class="feature-description">Advanced NLP preprocessing pipeline with regex cleaning, lowercasing, stopword removal using NLTK, and Porter Stemmer for word normalization.</p>
+                </div>
+
+                <div class="feature-card fade-in">
+                    <div class="feature-icon">🔤</div>
+                    <h3 class="feature-title">Feature Engineering</h3>
+                    <p class="feature-description">Implemented CountVectorizer for text-to-numeric transformation, creating a bag-of-words model to capture word frequency patterns in customer reviews.</p>
+                </div>
+
+                <div class="feature-card fade-in">
+                    <div class="feature-icon">🤖</div>
+                    <h3 class="feature-title">Model Training</h3>
+                    <p class="feature-description">Trained and evaluated multiple ML classifiers including Random Forest, achieving optimal performance through hyperparameter tuning and cross-validation.</p>
+                </div>
+
+                <div class="feature-card fade-in">
+                    <div class="feature-icon">📈</div>
+                    <h3 class="feature-title">Performance Metrics</h3>
+                    <p class="feature-description">Comprehensive evaluation using accuracy, precision, recall, F1-score, and confusion matrix analysis to ensure robust model performance.</p>
+                </div>
+
+                <div class="feature-card fade-in">
+                    <div class="feature-icon">🚀</div>
+                    <h3 class="feature-title">Flask Deployment</h3>
+                    <p class="feature-description">Production-ready Flask web application with dual functionality: single review prediction and batch TSV file analysis with interactive visualizations.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Model Performance -->
+    <section id="performance" class="section" style="background: #FAFAFA;">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-tag">Model Performance</div>
+                <h2 class="section-title">Exceptional Accuracy</h2>
+                <p class="section-description">Random Forest classifier demonstrates superior performance across all evaluation metrics</p>
+            </div>
+
+            <div class="model-grid">
+                <div class="model-card fade-in">
+                    <div class="model-name">ACCURACY</div>
+                    <div class="model-score">94%</div>
+                    <div class="model-label">Overall Correctness</div>
+                </div>
+
+                <div class="model-card fade-in">
+                    <div class="model-name">PRECISION</div>
+                    <div class="model-score">93%</div>
+                    <div class="model-label">Positive Predictive Value</div>
+                </div>
+
+                <div class="model-card fade-in">
+                    <div class="model-name">RECALL</div>
+                    <div class="model-score">95%</div>
+                    <div class="model-label">Sensitivity</div>
+                </div>
+
+                <div class="model-card fade-in">
+                    <div class="model-name">F1-SCORE</div>
+                    <div class="model-score">94%</div>
+                    <div class="model-label">Harmonic Mean</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Dataset Insights -->
+    <section class="section">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-tag">Dataset Insights</div>
+                <h2 class="section-title">Key Findings</h2>
+            </div>
+
+            <div class="insights-grid">
+                <div class="insight-card fade-in">
+                    <h3 class="insight-title">Dataset Statistics</h3>
+                    <ul class="insight-list">
+                        <li>
+                            <span class="insight-key">Total Reviews</span>
+                            <span class="insight-value">3,150</span>
+                        </li>
+                        <li>
+                            <span class="insight-key">Positive Reviews</span>
+                            <span class="insight-value">2,893 (91.8%)</span>
+                        </li>
+                        <li>
+                            <span class="insight-key">Negative Reviews</span>
+                            <span class="insight-value">257 (8.2%)</span>
+                        </li>
+                        <li>
+                            <span class="insight-key">Product Variations</span>
+                            <span class="insight-value">16 Types</span>
+                        </li>
+                        <li>
+                            <span class="insight-key">Date Range</span>
+                            <span class="insight-value">Jul 2018</span>
+                        </li>
+                        <li>
+                            <span class="insight-key">Rating Range</span>
+                            <span class="insight-value">1-5 Stars</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="insight-card fade-in">
+                    <h3 class="insight-title">Top Features</h3>
+                    <ul class="insight-list">
+                        <li>
+                            <span class="insight-key">Most Common</span>
+                            <span class="insight-value">"Love"</span>
+                        </li>
+                        <li>
+                            <span class="insight-key">Second</span>
+                            <span class="insight-value">"Great"</span>
+                        </li>
+                        <li>
+                            <span class="insight-key">Third</span>
+                            <span class="insight-value">"Music"</span>
+                        </li>
+                        <li>
+                            <span class="insight-key">Fourth</span>
+                            <span class="insight-value">"Easy"</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tech Stack -->
+    <section id="tech" class="section" style="background: #FAFAFA;">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-tag">Technology Stack</div>
+                <h2 class="section-title">Built With Industry Tools</h2>
+            </div>
+
+            <div class="tech-grid">
+                <div class="tech-item fade-in">
+                    <div class="tech-icon">🐍</div>
+                    <div class="tech-name">Python 3.x</div>
+                </div>
+                <div class="tech-item fade-in">
+                    <div class="tech-icon">📊</div>
+                    <div class="tech-name">Pandas</div>
+                </div>
+                <div class="tech-item fade-in">
+                    <div class="tech-icon">🔢</div>
+                    <div class="tech-name">NumPy</div>
+                </div>
+                <div class="tech-item fade-in">
+                    <div class="tech-icon">🤖</div>
+                    <div class="tech-name">Scikit-learn</div>
+                </div>
+                <div class="tech-item fade-in">
+                    <div class="tech-icon">📈</div>
+                    <div class="tech-name">Matplotlib</div>
+                </div>
+                <div class="tech-item fade-in">
+                    <div class="tech-icon">🎨</div>
+                    <div class="tech-name">Seaborn</div>
+                </div>
+                <div class="tech-item fade-in">
+                    <div class="tech-icon">📝</div>
+                    <div class="tech-name">NLTK</div>
+                </div>
+                <div class="tech-item fade-in">
+                    <div class="tech-icon">🌐</div>
+                    <div class="tech-name">Flask</div>
+                </div>
+                <div class="tech-item fade-in">
+                    <div class="tech-icon">💾</div>
+                    <div class="tech-name">Pickle</div>
+                </div>
+                <div class="tech-item fade-in">
+                    <div class="tech-icon">📓</div>
+                    <div class="tech-name">Jupyter</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Code Showcase -->
+    <section class="section">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-tag">Code Showcase</div>
+                <h2 class="section-title">Implementation Highlights</h2>
+            </div>
+
+            <div class="code-container fade-in">
+                <div class="code-header">
+                    <div class="code-dot"></div>
+                    <div class="code-dot"></div>
+                    <div class="code-dot"></div>
+                </div>
+                <pre><code><span class="code-comment"># Text Preprocessing Pipeline</span>
+<span class="code-keyword">from</span> nltk.stem.porter <span class="code-keyword">import</span> PorterStemmer
+<span class="code-keyword">from</span> nltk.corpus <span class="code-keyword">import</span> stopwords
+
+<span class="code-function">def</span> <span class="code-function">preprocess_review</span>(review):
+    <span class="code-comment"># Remove special characters and convert to lowercase</span>
+    review = re.<span class="code-function">sub</span>(<span class="code-string">'[^a-zA-Z]'</span>, <span class="code-string">' '</span>, review).<span class="code-function">lower</span>().<span class="code-function">split</span>()
+    
+    <span class="code-comment"># Apply stemming and remove stopwords</span>
+    stemmer = <span class="code-function">PorterStemmer</span>()
+    STOPWORDS = <span class="code-function">set</span>(stopwords.<span class="code-function">words</span>(<span class="code-string">'english'</span>))
+    
+    review = <span class="code-string">' '</span>.<span class="code-function">join</span>([stemmer.<span class="code-function">stem</span>(word) <span class="code-keyword">for</span> word <span class="code-keyword">in</span> review 
+                      <span class="code-keyword">if</span> word <span class="code-keyword">not in</span> STOPWORDS])
+    
+    <span class="code-keyword">return</span> review
+
+<span class="code-comment"># Transform text to feature vectors</span>
+X = cv.<span class="code-function">transform</span>([review]).<span class="code-function">toarray</span>()
+prediction = model_rf.<span class="code-function">predict</span>(X)</code></pre>
+            </div>
+        </div>
+    </section>
+
+    <!-- Key Features -->
+    <section class="section" style="background: #FAFAFA;">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-tag">Application Features</div>
+                <h2 class="section-title">Flask Web Application</h2>
+            </div>
+
+            <div class="features-grid">
+                <div class="feature-card fade-in">
+                    <div class="feature-icon">💬</div>
+                    <h3 class="feature-title">Single Review Analysis</h3>
+                    <p class="feature-description">Real-time sentiment prediction for individual customer reviews with instant feedback on positive/negative classification.</p>
+                </div>
+
+                <div class="feature-card fade-in">
+                    <div class="feature-icon">📁</div>
+                    <h3 class="feature-title">Batch Processing</h3>
+                    <p class="feature-description">Upload TSV files with multiple reviews for bulk analysis and comprehensive sentiment distribution visualization.</p>
+                </div>
+
+                <div class="feature-card fade-in">
+                    <div class="feature-icon">📊</div>
+                    <h3 class="feature-title">Interactive Visualization</h3>
+                    <p class="feature-description">Dynamic pie charts generated with Matplotlib showing sentiment distribution percentages for batch analyses.</p>
+                </div>
+
+                <div class="feature-card fade-in">
+                    <div class="feature-icon">🎨</div>
+                    <h3 class="feature-title">Modern UI/UX</h3>
+                    <p class="feature-description">Clean, responsive dark mode interface with centered layout optimized for both desktop and mobile devices.</p>
+                </div>
+
+                <div class="feature-card fade-in">
+                    <div class="feature-icon">⚡</div>
+                    <h3 class="feature-title">Fast Predictions</h3>
+                    <p class="feature-description">Optimized model inference with pre-trained Random Forest and CountVectorizer loaded from pickle files for instant results.</p>
+                </div>
+
+                <div class="feature-card fade-in">
+                    <div class="feature-icon">🛡️</div>
+                    <h3 class="feature-title">Error Handling</h3>
+                    <p class="feature-description">Robust validation with user-friendly error messages for invalid file formats and missing required columns.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="container">
+            <h2 class="cta-title">Ready to Explore?</h2>
+            <p class="cta-description">Dive into the complete machine learning pipeline from data exploration to deployment</p>
+            <div class="cta-buttons">
+                <a href="#" class="btn btn-primary">View Notebook</a>
+                <a href="#" class="btn btn-secondary">Try Demo</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <p class="footer-text">Built with Python, Scikit-learn, Flask, and NLTK</p>
+            <p class="footer-text" style="margin-top: 1rem; opacity: 0.6;">Amazon Alexa Sentiment Analysis Project © 2026</p>
+        </div>
+    </footer>
+
+    <script>
+        // Intersection Observer for scroll animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.fade-in').forEach(el => {
+            observer.observe(el);
+        });
+
+        // Smooth scroll for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    const offsetTop = target.offsetTop - 80;
+                    window.scrollTo({
+                        top: offsetTop,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
